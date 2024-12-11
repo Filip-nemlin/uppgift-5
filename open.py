@@ -1,9 +1,19 @@
+'''
+OPEN.PY: Kort beskrivning
+
+__author__  = "Filip Nemlin"
+__version__ = "1.0.0"
+__email__   = "filip.nemlin@ga.ntig.se"
+'''
+
 import csv
 import os
 from time import sleep
+from colors import bcolors
 
 
 def load_data(filename): 
+    """Laddar produktdata från en CSV-fil."""
     products = [] 
     try:
         with open(filename, 'r') as file:
@@ -29,7 +39,19 @@ def load_data(filename):
     return products
 
 
+def truncate(text, length):
+    """Avkortar text om den är längre än angiven längd."""
+    return (text[:length] + "...") if len(text) > length else text
+
+
+def __str__(self):
+    truncated_name = truncate(self["name"], 35)  # Avkortning av namn
+    truncated_desc = truncate(self["desc"], 40)  # Avkortning av beskrivning
+    return f"{self['id']:<5} {truncated_name:<35} {truncated_desc:<40} {self['price']:<15.2f} {self['quantity']:<10}"
+
+
 def remove_product(products, id):
+    """Tar bort en produkt baserat på ID."""
     temp_product = None
 
     for product in products:
@@ -39,29 +61,37 @@ def remove_product(products, id):
 
     if temp_product:
         products.remove(temp_product)
-        return f"Product: {id} {temp_product['name']} was removed"
+        return f"Produkt: {id} {temp_product['name']} togs bort."
     else:
-        return f"Product with id {id} not found"
+        return f"Produkt med id {id} hittades inte."
 
 
 def view_product(products, id):
+    """Visar en produkt baserat på ID."""
     for product in products:
         if product["id"] == id:
-            return f"Visar produkt: {product['name']} {product['desc']}"
+            return f"Visar produkt: {product['name']} - {product['desc']} - {product['price']} kr - Antal: {product['quantity']}"
+    return "Produkten hittas inte."
+
+
+def view_products(products):  #Visar en tabell med alla produkter."""
+    header = f"{'ID':<6} {'NAME':<26} {'DESCRIPTION':<51} {'PRICE':<15} {'QUANTITY':<10}"
+    separator = "-" * 110  # linjen uppe
     
-    return "Produkten hittas inte"
 
-
-def view_products(products):
-    product_list = []
-    for index, product in enumerate(products, 1):
-        product_info = f"{index}) (#{product['id']}) {product['name']} \t {product['desc']} \t {product['price']:.2f} kr"
-        product_list.append(product_info)
+    rows = []
+    for product in products:
+        truncated_name = truncate(product["name"], 20)
+        truncated_desc = truncate(product["desc"], 40)
+        row = f"{product['id']:<6} {truncated_name:<26} {truncated_desc:<51} {product['price']:<15.2f} {product['quantity']:<10}"
+        rows.append(row)
     
-    return "\n".join(product_list)
+
+    inventory_table = "\n".join([header, separator] + rows)
+    return inventory_table
 
 
-def add_product(products, name, desc, price, quantity):
+def add_product(products, name, desc, price, quantity):  #Lägg till en ny produkt.
     if products:
         max_id = max(products, key=lambda x: x["id"])
         id_value = max_id["id"]
@@ -79,7 +109,7 @@ def add_product(products, name, desc, price, quantity):
             "quantity": quantity
         }
     )
-    return f"lade till produkt: {id}"
+    return f"Lade till produkt: {id}"
 
 
 os.system('cls' if os.name == 'nt' else 'clear')
@@ -91,14 +121,14 @@ while True:
 
         print(view_products(products))  # Visa alla produkter
 
-        choice = input("Vill du (V)isa, (T)a bort, (L)ägga till eller (Ä)ndra en produkt? ").strip().upper()
+        choice = input(bcolors.GREEN + "Vill du (V)isa, (T)a bort, (L)ägga till eller (Ä)ndra en produkt? ").strip().upper()
 
         if choice == "L":  # Lägg till produkt
             name = input("Namn: ")
             desc = input("Beskrivning: ")
             price = float(input("Pris: "))
             quantity = int(input("Kvantitet: "))
-            print(add_product(products, name, desc, price, quantity))
+            print(add_product(bcolors.DEFAULT + products, name, desc, price, quantity))
             sleep(0.5)
 
         else:
@@ -131,4 +161,3 @@ while True:
     except ValueError:
         print("Välj en produkt med siffror")
         sleep(0.5)
-
